@@ -18,6 +18,8 @@ Connect-AzureAD -TenantId $TenantID
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
 $PasswordProfile.Password = "Event123"
 
+$userArray = @()
+
 foreach ($line in $UserCsv){
 	$UserName = $line.UserName
 	$PrincipalName = $line.PrincipalName
@@ -28,8 +30,9 @@ foreach ($line in $UserCsv){
 									-UserPrincipalName $PrincipalName `
 									-PasswordProfile $PasswordProfile `
 									-mailNickname $Nickname 
+	Write-Host $NewUserOutput.ObjectId
 	$PropertyHash = @{
-		UserID = $NewUserOutput.ObjectId
+		UserID = $NewUserOutput.ObjectId | Out-String
 		FirstName = $line.FirstName
 		LastName = $line.LastName
 		Email = $PrincipalName
@@ -37,6 +40,7 @@ foreach ($line in $UserCsv){
 
 	$UserObject = New-Object PSObject -Property $PropertyHash
 
-	$UserObject | ConvertTo-Json >> userOutput.txt
+	$userArray += $UserObject 
 }
 
+$userArray | ConvertTo-Json > userOutput.txt
